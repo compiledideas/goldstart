@@ -26,12 +26,11 @@ export default async function MarkPage({ params }: { params: Promise<{ slug: str
   const articles = await getArticlesWithVariantsByMark(mark.id);
   const category = mark.categoryId ? await getCategoryById(mark.categoryId) : null;
 
-  // WhatsApp number - you can change this
   const whatsappNumber = "212600000000";
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto container">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-foreground">Produits</Link>

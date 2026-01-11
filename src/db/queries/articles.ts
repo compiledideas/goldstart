@@ -1,6 +1,6 @@
 import db from '@/db';
 import { articles, marks, categories, articleVariants } from '@/db/schema';
-import { eq, desc, asc } from 'drizzle-orm';
+import { eq, desc, asc, gte, sql } from 'drizzle-orm';
 
 export async function getAllArticles() {
   return db.select({
@@ -248,4 +248,43 @@ export function generateSlug(name: string): string {
     .trim()
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
+}
+
+export async function getRecentArticlesWithVariants(days: number = 15) {
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - days);
+
+  const articlesResult = await db.select({
+    id: articles.id,
+    name: articles.name,
+    slug: articles.slug,
+    description: articles.description,
+    categoryId: articles.categoryId,
+    markId: articles.markId,
+    markName: marks.name,
+    markSlug: marks.slug,
+    categoryName: categories.name,
+    categorySlug: categories.slug,
+    createdAt: articles.createdAt,
+  }).from(articles)
+    .leftJoin(marks, eq(articles.markId, marks.id))
+    .leftJoin(categories, eq(articles.categoryId, categories.id))
+    .where(gte(articles.createdAt, fifteenDaysAgo))
+    .orderBy(desc(articles.createdAt));
+
+  // Fetch variants for each article
+  const articlesWithVariants = await Promise.all(
+    articlesResult.map(async (article) => {
+      const variants = await db.select()
+        .from(articleVariants)
+        .where(eq(articleVariants.articleId, article.id))
+        .orderBy(asc(articleVariants.name));
+      return {
+        ...article,
+        variants,
+      };
+    })
+  );
+
+  return articlesWithVariants.filter(a => a.variants.length > 0);
 }

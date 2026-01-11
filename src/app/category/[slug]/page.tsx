@@ -34,7 +34,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto container">
         {/* Breadcrumb */}
         <Link href="/" className="inline-block text-sm text-muted-foreground hover:text-foreground mb-6">
           ← Retour aux produits
