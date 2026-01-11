@@ -102,29 +102,20 @@ export async function getAllArticlesWithVariantsGroupedByMark() {
     .orderBy(asc(marks.name), asc(articles.name));
 
   // Group by mark
-  const grouped = new Map<string | null, typeof articlesResult & { variants: any[] }>();
+  const grouped: Record<string, any> = {};
 
   for (const article of articlesResult) {
     const key = article.markName || 'Sans marque';
-    if (!grouped.has(key)) {
-      grouped.set(key, { ...article, variants: [] });
+    if (!grouped[key]) {
+      grouped[key] = { ...article, variants: [] };
     }
-    const variants = await db.select()
-      .from(articleVariants)
-      .where(eq(articleVariants.articleId, article.id))
-      .orderBy(asc(articleVariants.price));
-
-    grouped.get(key)!.variants.push({
-      ...article,
-      variants,
-    });
   }
 
-  // Convert to array and fetch variants for each article
+  // Fetch variants for each article
   const result = [];
-  for (const [markName, data] of grouped) {
+  for (const [markName, data] of Object.entries(grouped)) {
     const articlesWithVariants = await Promise.all(
-      data.variants.map(async (article: any) => {
+      (data.variants as any[]).map(async (article: any) => {
         const variants = await db.select()
           .from(articleVariants)
           .where(eq(articleVariants.articleId, article.id))
@@ -138,7 +129,7 @@ export async function getAllArticlesWithVariantsGroupedByMark() {
     result.push({
       markName: markName === 'Sans marque' ? null : data.markName,
       markSlug: data.markSlug,
-      articles: articlesWithVariants.filter(a => a.variants.length > 0),
+      articles: articlesWithVariants.filter((a: any) => a.variants.length > 0),
     });
   }
 

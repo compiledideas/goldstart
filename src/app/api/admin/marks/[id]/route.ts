@@ -6,10 +6,11 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const mark = await getMarkById(parseInt(params.id));
+    const { id } = await params;
+    const mark = await getMarkById(parseInt(id));
 
     if (!mark) {
       return NextResponse.json({ error: 'Mark not found' }, { status: 404 });
@@ -23,9 +24,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session || session.user.role !== 'admin') {
@@ -44,7 +46,7 @@ export async function PUT(
     if (image !== undefined) updateData.image = image;
     if (categoryId !== undefined) updateData.categoryId = categoryId;
 
-    const mark = await updateMark(parseInt(params.id), updateData);
+    const mark = await updateMark(parseInt(id), updateData);
 
     if (!mark) {
       return NextResponse.json({ error: 'Mark not found' }, { status: 404 });
@@ -58,16 +60,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await deleteMark(parseInt(params.id));
+    await deleteMark(parseInt(id));
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete mark' }, { status: 500 });

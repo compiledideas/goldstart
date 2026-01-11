@@ -1,13 +1,19 @@
 FROM node:20-alpine AS base
 
+# Install build dependencies for native modules
+RUN apk add --no-cache \
+    libc6-compat \
+    python3 \
+    make \
+    g++
+
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
-COPY package.json pnpm-lock.yaml* ./
-RUN corepack enable pnpm && pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
+RUN corepack enable pnpm && pnpm install --frozen-lockfile=false
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -33,8 +39,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Create uploads directory with proper permissions
-RUN mkdir -p /app/uploads && chown -R nextjs:nodejs /app/uploads
+# Create uploads and data directories with proper permissions
+RUN mkdir -p /app/uploads /app/data && chown -R nextjs:nodejs /app/uploads /app/data
 
 USER nextjs
 

@@ -81,6 +81,7 @@ export default function EditArticlePage() {
         });
         if (data.variants && data.variants.length > 0) {
           setVariants(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data.variants.map((v: any) => ({
               id: v.id,
               name: v.name,
@@ -134,7 +135,7 @@ export default function EditArticlePage() {
 
   const updateVariant = (index: number, field: keyof Variant, value: string) => {
     const newVariants = [...variants];
-    newVariants[index][field] = value;
+    (newVariants[index] as any)[field] = value;
     setVariants(newVariants);
   };
 
