@@ -93,20 +93,6 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          <div className="mt-6 pt-6 border-t">
-            <p className="text-sm font-medium text-center mb-2">Default credentials</p>
-            <div className="bg-muted rounded-lg p-3 text-sm space-y-1">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Email:</span>
-                <span className="font-mono font-medium">admin@example.com</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Password:</span>
-                <span className="font-mono font-medium">admin123</span>
-              </div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

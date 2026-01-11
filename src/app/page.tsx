@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ImageOff } from 'lucide-react';
+import { DownloadCatalogButton } from '@/components/download-catalog-button';
 
 export default async function HomePage() {
   const categories = await getAllCategories();
@@ -156,6 +157,9 @@ export default async function HomePage() {
           </section>
         )}
       </div>
+
+      {/* Floating Download Button */}
+      <DownloadCatalogButton />
     </div>
   );
 }
