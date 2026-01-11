@@ -1,0 +1,48 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { getAllMarks, createMark, generateSlug } from '@/db/queries/marks';
+
+export const runtime = 'nodejs';
+
+export async function GET() {
+  try {
+    const marks = await getAllMarks();
+    return NextResponse.json(marks);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to fetch marks' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session || session.user.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { name, description, image, categoryId } = body;
+
+    if (!name) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+    }
+
+    if (!categoryId) {
+      return NextResponse.json({ error: 'Category is required' }, { status: 400 });
+    }
+
+    const slug = generateSlug(name);
+    const mark = await createMark({
+      name,
+      slug,
+      description: description || null,
+      image: image || null,
+      categoryId,
+    });
+
+    return NextResponse.json(mark, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to create mark' }, { status: 500 });
+  }
+}
