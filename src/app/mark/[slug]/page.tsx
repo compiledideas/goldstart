@@ -25,7 +25,7 @@ export default async function MarkPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto container ">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-foreground">Categories</Link>
@@ -46,15 +46,15 @@ export default async function MarkPage({ params }: { params: Promise<{ slug: str
             <p className="text-muted-foreground">No items yet</p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-8 border border-purple-500/10 rounded-xl">
             {articles.map((article) => (
               article.variants.length > 0 && (
-                <div key={article.id}>
+                <div key={article.id} className='p-2'>
                   <h2 className="text-xl font-semibold mb-4">{article.name}</h2>
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Variant</TableHead>
+                      <TableRow className='bg-purple-500/10'>
+                        <TableHead >Variant</TableHead>
                         <TableHead className="text-right">Price</TableHead>
                         <TableHead className="text-center">Stock</TableHead>
                       </TableRow>

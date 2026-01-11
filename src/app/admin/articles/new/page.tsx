@@ -265,7 +265,7 @@ export default function NewArticlePage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor={`variant-price-${index}`}>Price (€) *</Label>
+                        <Label htmlFor={`variant-price-${index}`}>Price (DH) *</Label>
                         <Input
                           id={`variant-price-${index}`}
                           type="number"

@@ -6,6 +6,7 @@ import { getArticlesWithVariantsByCategory } from '@/db/queries/articles';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ImageOff } from 'lucide-react';
+import Image from 'next/image';
 
 export async function generateStaticParams() {
   const categories = await getAllCategories();
@@ -37,16 +38,18 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <h1 className="text-3xl font-bold tracking-tight mb-8">{category.name}</h1>
 
         {hasMarks ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {marks.map((mark) => (
               <Link key={mark.id} href={`/mark/${mark.slug}`}>
-                <Card className="group cursor-pointer transition-all hover:scale-105 hover:shadow-lg overflow-hidden">
+                <Card className="group cursor-pointer transition-all overflow-hidden p-0 rounded-lg shadow-none">
                   <div className="aspect-square w-full bg-muted">
                     {mark.image ? (
-                      <img
+                      <Image
+                        width={400}
+                        height={400}
                         src={mark.image}
                         alt={mark.name}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-110"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-muted">

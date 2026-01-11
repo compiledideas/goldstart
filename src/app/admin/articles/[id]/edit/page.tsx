@@ -283,7 +283,7 @@ export default function EditArticlePage({ params }: { params: { id: string } }) 
                   <div>
                     <span className="font-medium">{variant.name}</span>
                     <span className="text-muted-foreground ml-2">
-                      €{variant.price} - Stock: {variant.stock}
+                      DH{variant.price} - Stock: {variant.stock}
                     </span>
                   </div>
                 </div>

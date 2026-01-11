@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, ImageOff, Package, Check, X, Euro } from 'lucide-react';
+import Image from 'next/image';
 
 export async function generateStaticParams() {
   const articles = await getAllArticles();
@@ -23,17 +24,16 @@ export default async function ArticlePage({ params }: { params: { slug: string }
     notFound();
   }
 
-  const category = await getCategoryById(data.categoryId);
+  const category = await getCategoryById(data.categoryId as number);
   const mark = data.markId ? await getMarkById(data.markId) : null;
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:text-primary transition-colors">
-            <Package className="h-5 w-5" />
-            Phone Repair Parts
+           <Image alt='' src="/logo.png" className='h-24 '  />
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
