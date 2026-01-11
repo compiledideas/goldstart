@@ -3,6 +3,7 @@ node_modules
 npm-debug.log
 yarn-error.log
 # pnpm-lock.yaml - KEEP THIS for consistent builds
+# pnpm-workspace.yaml - KEEP THIS for workspace config
 
 # Next.js
 .next
