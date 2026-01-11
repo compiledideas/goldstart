@@ -2,7 +2,7 @@
 node_modules
 npm-debug.log
 yarn-error.log
-pnpm-lock.yaml
+# pnpm-lock.yaml - KEEP THIS for consistent builds
 
 # Next.js
 .next
