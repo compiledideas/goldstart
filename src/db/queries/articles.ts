@@ -85,6 +85,66 @@ export async function getArticlesWithVariantsByMark(markId: number) {
   return articlesWithVariants;
 }
 
+export async function getAllArticlesWithVariantsGroupedByMark() {
+  const articlesResult = await db.select({
+    id: articles.id,
+    name: articles.name,
+    slug: articles.slug,
+    description: articles.description,
+    categoryId: articles.categoryId,
+    markId: articles.markId,
+    markName: marks.name,
+    markSlug: marks.slug,
+    categoryName: categories.name,
+  }).from(articles)
+    .leftJoin(marks, eq(articles.markId, marks.id))
+    .leftJoin(categories, eq(articles.categoryId, categories.id))
+    .orderBy(asc(marks.name), asc(articles.name));
+
+  // Group by mark
+  const grouped = new Map<string | null, typeof articlesResult & { variants: any[] }>();
+
+  for (const article of articlesResult) {
+    const key = article.markName || 'Sans marque';
+    if (!grouped.has(key)) {
+      grouped.set(key, { ...article, variants: [] });
+    }
+    const variants = await db.select()
+      .from(articleVariants)
+      .where(eq(articleVariants.articleId, article.id))
+      .orderBy(asc(articleVariants.price));
+
+    grouped.get(key)!.variants.push({
+      ...article,
+      variants,
+    });
+  }
+
+  // Convert to array and fetch variants for each article
+  const result = [];
+  for (const [markName, data] of grouped) {
+    const articlesWithVariants = await Promise.all(
+      data.variants.map(async (article: any) => {
+        const variants = await db.select()
+          .from(articleVariants)
+          .where(eq(articleVariants.articleId, article.id))
+          .orderBy(asc(articleVariants.name));
+        return {
+          ...article,
+          variants,
+        };
+      })
+    );
+    result.push({
+      markName: markName === 'Sans marque' ? null : data.markName,
+      markSlug: data.markSlug,
+      articles: articlesWithVariants.filter(a => a.variants.length > 0),
+    });
+  }
+
+  return result;
+}
+
 export async function getArticlesByCategory(categoryId: number) {
   return db.select({
     id: articles.id,
