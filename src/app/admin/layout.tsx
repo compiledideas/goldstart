@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, FolderTree, Tag, Package, LogOut, Wrench, Home } from 'lucide-react';
+import { LayoutDashboard, FolderTree, Tag, Package, LogOut, Wrench, Home, Users } from 'lucide-react';
 
 export default async function AdminLayout({
   children,
@@ -55,6 +55,12 @@ export default async function AdminLayout({
               <Button variant="ghost" className="w-full justify-start gap-2">
                 <Package className="h-4 w-4" />
                 Articles
+              </Button>
+            </Link>
+            <Link href="/admin/users">
+              <Button variant="ghost" className="w-full justify-start gap-2">
+                <Users className="h-4 w-4" />
+                Users
               </Button>
             </Link>
             <Separator className="my-2" />

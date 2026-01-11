@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FolderTree, Tag, Package, Plus, TrendingUp, Activity } from 'lucide-react';
+import { FolderTree, Tag, Package, Plus, TrendingUp, Activity, Users } from 'lucide-react';
 import { getAllCategories } from '@/db/queries/categories';
 import { getAllMarks } from '@/db/queries/marks';
 import { getAllArticles } from '@/db/queries/articles';
@@ -118,6 +118,12 @@ export default async function AdminDashboard() {
             <Button variant="outline" className="gap-2">
               <Package className="h-4 w-4" />
               Manage Articles
+            </Button>
+          </Link>
+          <Link href="/admin/users">
+            <Button variant="outline" className="gap-2">
+              <Users className="h-4 w-4" />
+              Manage Users
             </Button>
           </Link>
         </CardContent>

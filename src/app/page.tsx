@@ -24,7 +24,7 @@ export default async function HomePage() {
           <Link href="/" className="flex items-center gap-2 font-bold text-xl hover:text-primary transition-colors">
             <Image alt='' src="/logo.png" className='h-24' height={100} width={250} />
           </Link>
-          <Link href="/login">
+          <Link href="/admin">
             <Button variant="outline" size="sm">
               <Settings className="mr-2 h-4 w-4" />
               Admin
