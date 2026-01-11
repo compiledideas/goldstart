@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const users = sqliteTable('users', {
@@ -43,7 +43,7 @@ export const articleVariants = sqliteTable('article_variants', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   articleId: integer('article_id').references(() => articles.id, { onDelete: 'cascade' }).notNull(),
   name: text('name').notNull(),
-  price: integer('price').notNull(), // Price in cents
+  price: real('price').notNull(), // Price in DH
   image: text('image'),
   stock: integer('stock').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),

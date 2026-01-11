@@ -103,7 +103,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
                                 <span className="text-red-600 text-sm">Rupture</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right px-0">
+                            <TableCell className="text-right py-0">
                               <a
                                 href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
                                   `Bonjour, je souhaite commander: ${article.name} - ${variant.name} (${variant.price > 0 ? variant.price + ' DH' : 'Prix sur demande'})`

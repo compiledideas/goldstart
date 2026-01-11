@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, PDFImage } from 'pdf-lib'; // Added PDFImage type
 import { getAllArticlesWithVariantsGroupedByMark } from '@/db/queries/articles';
+import fs from 'fs';
+import path from 'path';
 
 export const runtime = 'nodejs';
 
@@ -8,235 +10,232 @@ export async function GET(request: NextRequest) {
   try {
     const groupedArticles = await getAllArticlesWithVariantsGroupedByMark();
 
-    // Create PDF document
     const pdfDoc = await PDFDocument.create();
-
-    // Embed fonts
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Page dimensions
-    const pageWidth = 595.28; // A4 width in points
-    const pageHeight = 841.89; // A4 height in points
-    const margin = 50;
-    const tableTop = 150;
-    const rowHeight = 25;
-
-    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-    let currentY = tableTop;
-
-    // Add header on first page
-    currentPage.drawText('Phone Repair', {
-      x: margin,
-      y: pageHeight - 50,
-      size: 24,
-      font: fontBold,
-      color: rgb(0, 0, 0),
-    });
-
-    const contactLines = [
-      'WhatsApp: +212 600 000 000',
-      'Email: contact@goldstart.app',
-      'Catalogue des produits',
-    ];
-
-    let contactY = pageHeight - 50;
-    for (const line of contactLines) {
-      currentPage.drawText(line, {
-        x: pageWidth - margin - 150,
-        y: contactY,
-        size: 10,
-        font: font,
-        color: rgb(0.4, 0.4, 0.4),
-      });
-      contactY -= 15;
+    // 1. Explicitly type logoImage
+    let logoImage: PDFImage | undefined;
+    try {
+      const logoPath = path.join(process.cwd(), 'public', 'logo.png');
+      const logoBytes = fs.readFileSync(logoPath);
+      logoImage = await pdfDoc.embedPng(logoBytes);
+    } catch (e) {
+      console.warn("Logo not found at /public/logo.png");
     }
 
-    // Draw line separator
-    currentPage.drawLine({
-      start: { x: margin, y: pageHeight - 120 },
-      end: { x: pageWidth - margin, y: pageHeight - 120 },
-      thickness: 1,
-      color: rgb(0.8, 0.8, 0.8),
-    });
+    const pageWidth = 595.28;
+    const pageHeight = 841.89;
+    const margin = 40;
+    const rowHeight = 25;
+    const headerHeight = 30;
 
-    // Column positions
+    let currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+    let currentY = pageHeight - margin;
+
     const colX = {
       product: margin,
-      variant: 280,
+      variant: 200,
       price: 400,
-      stock: 480,
+      stock: 500,
     };
 
-    // Helper to check and add new page if needed
-    const checkNewPage = () => {
-      if (currentY > pageHeight - 100) {
-        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
-        currentY = tableTop;
+    const drawHeader = () => {
+        // 2. Adjust logo Y-position (moved slightly lower)
+        if (logoImage) {
+            const dims = logoImage.scale(0.22);
+            currentPage.drawImage(logoImage, {
+                x: margin,
+                y: pageHeight - margin - 65, // Lowered from -40
+                width: dims.width,
+                height: dims.height,
+            });
+        }
 
-        // Add page number
-        currentPage.drawText(`Page ${pdfDoc.getPageCount()}`, {
-          x: pageWidth / 2 - 20,
-          y: 30,
-          size: 8,
-          font: font,
-          color: rgb(0.6, 0.6, 0.6),
+        // 3. New Header Info with 2 locations and 2 phone numbers
+        const infoX = pageWidth - margin - 180;
+        let infoY = pageHeight - margin - 10;
+
+        const contactInfo = [
+            'Tél 1: +212 600 000 000',
+            'Tél 2: +212 611 111 111',
+            'Email: contact@goldstart.app',
+            'Secteur A, Rue 1, Casablanca',
+            'Secteur B, Rue 2, Rabat',
+            'Catalogue des produits',
+        ];
+
+        contactInfo.forEach((line, index) => {
+            // Make the last line (Catalogue) bold or slightly different if desired
+            const isTitle = index === contactInfo.length - 1;
+            currentPage.drawText(line, {
+                x: infoX,
+                y: infoY,
+                size: 8.5,
+                font: isTitle ? fontBold : font,
+                color: isTitle ? rgb(0, 0, 0) : rgb(0.4, 0.4, 0.4),
+            });
+            infoY -= 13;
         });
-      }
+
+        currentY = pageHeight - margin - 100; // Adjusted starting point for content
     };
 
-    // Process each group (mark)
+    const checkNewPage = (neededHeight: number) => {
+      if (currentY - neededHeight < margin + 40) {
+        currentPage = pdfDoc.addPage([pageWidth, pageHeight]);
+        currentY = pageHeight - margin;
+        // Optional: you could call drawHeader() on every page if you want the logo everywhere
+        return true;
+      }
+      return false;
+    };
+
+    drawHeader();
+
     for (const group of groupedArticles) {
       if (!group.markName || group.articles.length === 0) continue;
 
-      checkNewPage();
+      checkNewPage(100);
 
-      // Mark title
+      currentY -= 30;
       currentPage.drawText(group.markName, {
         x: margin,
         y: currentY,
-        size: 16,
+        size: 18,
         font: fontBold,
         color: rgb(0, 0, 0),
       });
-      currentY += 30;
 
-      // Table header
-      currentPage.drawText('Produit', {
-        x: colX.product + 5,
-        y: currentY,
-        size: 9,
-        font: fontBold,
-        color: rgb(0.2, 0.2, 0.2),
-      });
-      currentPage.drawText('Variantes', {
-        x: colX.variant + 5,
-        y: currentY,
-        size: 9,
-        font: fontBold,
-        color: rgb(0.2, 0.2, 0.2),
-      });
-      currentPage.drawText('Prix', {
-        x: colX.price + 5,
-        y: currentY,
-        size: 9,
-        font: fontBold,
-        color: rgb(0.2, 0.2, 0.2),
-      });
-      currentPage.drawText('Stock', {
-        x: colX.stock + 5,
-        y: currentY,
-        size: 9,
-        font: fontBold,
-        color: rgb(0.2, 0.2, 0.2),
-      });
+      currentY -= 30;
 
-      // Draw header background
+      // Header Background
       currentPage.drawRectangle({
-        x: colX.product,
+        x: margin,
         y: currentY - 5,
-        width: pageWidth - 2 * margin,
-        height: rowHeight,
-        color: rgb(0.96, 0.96, 0.96),
-        borderColor: rgb(0.8, 0.8, 0.8),
-        borderWidth: 1,
+        width: pageWidth - (margin * 2),
+        height: headerHeight,
+        color: rgb(0.98, 0.98, 0.98),
       });
 
-      currentY += rowHeight;
+      const headerY = currentY + 7;
+      const headers = [
+          { text: 'Produit', x: colX.product + 5 },
+          { text: 'Variantes', x: colX.variant + 5 },
+          { text: 'Prix', x: colX.price + 5 },
+          { text: 'Stock', x: colX.stock + 5 }
+      ];
 
-      let rowCounter = 0;
+      headers.forEach(h => {
+          currentPage.drawText(h.text, { x: h.x, y: headerY, size: 10, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
+      });
+
+      currentPage.drawLine({
+          start: { x: margin, y: currentY - 5 },
+          end: { x: pageWidth - margin, y: currentY - 5 },
+          thickness: 1,
+          color: rgb(0.9, 0.9, 0.9),
+      });
+
+      currentY -= 5;
 
       for (const article of group.articles) {
-        for (let i = 0; i < article.variants.length; i++) {
-          const variant = article.variants[i];
+        const articleTotalHeight = article.variants.length * rowHeight;
 
-          checkNewPage();
+        if (checkNewPage(articleTotalHeight)) {
+            // Draw header again on new page for table context
+            currentY -= 30;
+        }
 
-          // Alternating row background
-          if (rowCounter % 2 === 0) {
-            currentPage.drawRectangle({
-              x: colX.product,
-              y: currentY - 5,
-              width: pageWidth - 2 * margin,
-              height: rowHeight,
-              color: rgb(0.98, 0.98, 0.98),
-            });
-          }
-          rowCounter++;
+        const productBlockTop = currentY;
 
-          // Row border
-          currentPage.drawRectangle({
-            x: colX.product,
-            y: currentY - 5,
-            width: pageWidth - 2 * margin,
-            height: rowHeight,
-            borderColor: rgb(0.93, 0.93, 0.93),
-            borderWidth: 1,
-          });
+        article.variants.forEach((variant: typeof article.variants[number]) => {
+          currentY -= rowHeight;
+          const textY = currentY + 7;
 
-          // Product cell (only for first variant)
-          if (i === 0) {
-            currentPage.drawText(article.name, {
-              x: colX.product + 5,
-              y: currentY,
-              size: 8,
-              font: font,
-              color: rgb(0, 0, 0),
-              maxWidth: colX.variant - colX.product - 10,
-            });
-          }
-
-          // Variant cell
+          // Variant Text
           currentPage.drawText(variant.name, {
             x: colX.variant + 5,
-            y: currentY,
-            size: 8,
+            y: textY,
+            size: 9,
             font: font,
-            color: rgb(0.2, 0.2, 0.2),
-            maxWidth: colX.price - colX.variant - 10,
           });
 
-          // Price cell
+          // Price Bold
           const priceText = variant.price > 0 ? `${variant.price} DH` : 'Sur demande';
           currentPage.drawText(priceText, {
             x: colX.price + 5,
-            y: currentY,
-            size: 8,
-            font: font,
+            y: textY,
+            size: 9,
+            font: fontBold,
             color: rgb(0, 0, 0),
           });
 
-          // Stock cell
-          const stockColor = variant.stock > 0 ? rgb(0.13, 0.77, 0.37) : rgb(0.94, 0.26, 0.26);
-          const stockText = variant.stock > 0 ? 'En stock' : 'Rupture';
-          currentPage.drawText(stockText, {
+          // Stock Color
+          const isStock = variant.stock > 0;
+          currentPage.drawText(isStock ? 'En stock' : 'Rupture', {
             x: colX.stock + 5,
-            y: currentY,
-            size: 8,
+            y: textY,
+            size: 9,
             font: font,
-            color: stockColor,
+            color: isStock ? rgb(0.13, 0.6, 0.3) : rgb(0.8, 0.2, 0.2),
           });
 
-          currentY += rowHeight;
-        }
+          currentPage.drawLine({
+            start: { x: colX.variant, y: currentY },
+            end: { x: pageWidth - margin, y: currentY },
+            thickness: 0.5,
+            color: rgb(0.9, 0.9, 0.9),
+          });
+        });
+
+        // Merged Product Cell
+        currentPage.drawRectangle({
+            x: colX.product,
+            y: currentY,
+            width: colX.variant - colX.product,
+            height: articleTotalHeight,
+            borderColor: rgb(0.9, 0.9, 0.9),
+            borderWidth: 0.5,
+        });
+
+        currentPage.drawText(article.name, {
+            x: colX.product + 5,
+            y: productBlockTop - (articleTotalHeight / 2) - 4,
+            size: 10,
+            font: font,
+            color: rgb(0, 0, 0),
+            maxWidth: colX.variant - colX.product - 10,
+        });
+
+        currentPage.drawLine({
+            start: { x: colX.variant, y: productBlockTop },
+            end: { x: colX.variant, y: currentY },
+            thickness: 0.5,
+            color: rgb(0.9, 0.9, 0.9),
+        });
+
+        currentPage.drawLine({
+            start: { x: margin, y: currentY },
+            end: { x: pageWidth - margin, y: currentY },
+            thickness: 0.5,
+            color: rgb(0.9, 0.9, 0.9),
+        });
       }
-
-      currentY += 20;
+      currentY -= 5;
     }
 
-    // Add page numbers to all pages
     const pages = pdfDoc.getPages();
-    for (let i = 0; i < pages.length; i++) {
-      pages[i].drawText(`Page ${i + 1}`, {
-        x: pageWidth / 2 - 20,
-        y: 30,
-        size: 8,
-        font: font,
-        color: rgb(0.6, 0.6, 0.6),
-      });
-    }
+    pages.forEach((page, i) => {
+        page.drawText(`Page ${i + 1} / ${pages.length}`, {
+            x: pageWidth / 2 - 30,
+            y: 20,
+            size: 8,
+            font: font,
+            color: rgb(0.5, 0.5, 0.5),
+        });
+    });
 
-    // Serialize PDF
     const pdfBytes = await pdfDoc.save();
 
     return new NextResponse(Buffer.from(pdfBytes), {

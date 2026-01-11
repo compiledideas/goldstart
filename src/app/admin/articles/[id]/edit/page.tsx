@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,8 +39,11 @@ interface Variant {
   image: string;
 }
 
-export default function EditArticlePage({ params }: { params: { id: string } }) {
+export default function EditArticlePage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,7 +60,7 @@ export default function EditArticlePage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     Promise.all([fetchArticle(), fetchCategories()]);
-  }, [params.id]);
+  }, [id]);
 
   useEffect(() => {
     if (formData.categoryId) {
@@ -67,7 +70,7 @@ export default function EditArticlePage({ params }: { params: { id: string } }) 
 
   const fetchArticle = async () => {
     try {
-      const res = await fetch(`/api/admin/articles/${params.id}`);
+      const res = await fetch(`/api/admin/articles/${id}`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -81,7 +84,7 @@ export default function EditArticlePage({ params }: { params: { id: string } }) 
             data.variants.map((v: any) => ({
               id: v.id,
               name: v.name,
-              price: (v.price / 100).toString(),
+              price: v.price.toString(),
               stock: v.stock.toString(),
               image: v.image || '',
             }))
@@ -140,7 +143,7 @@ export default function EditArticlePage({ params }: { params: { id: string } }) 
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/admin/articles/${params.id}`, {
+      const res = await fetch(`/api/admin/articles/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

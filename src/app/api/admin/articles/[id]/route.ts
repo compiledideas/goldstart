@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getArticleById, updateArticle, deleteArticle, generateSlug, getArticleWithVariants } from '@/db/queries/articles';
-import { getVariantsByArticle, deleteVariant, createVariant } from '@/db/queries/variants';
+import { getArticleById, updateArticle, deleteArticle, generateSlug } from '@/db/queries/articles';
+import { getVariantsByArticle } from '@/db/queries/variants';
 
 export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const article = await getArticleWithVariants(params.slug);
+    const { id } = await params;
+    const article = await getArticleById(parseInt(id));
 
     if (!article) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
     }
 
-    return NextResponse.json(article);
+    // Fetch variants for this article
+    const variants = await getVariantsByArticle(article.id);
+
+    return NextResponse.json({
+      ...article,
+      variants,
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
   }
@@ -24,9 +31,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session || session.user.role !== 'admin') {
@@ -45,7 +53,7 @@ export async function PUT(
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (markId !== undefined) updateData.markId = markId;
 
-    const article = await updateArticle(parseInt(params.id), updateData);
+    const article = await updateArticle(parseInt(id), updateData);
 
     if (!article) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
@@ -59,16 +67,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await auth();
 
     if (!session || session.user.role !== 'admin') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    await deleteArticle(parseInt(params.id));
+    await deleteArticle(parseInt(id));
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
