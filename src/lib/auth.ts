@@ -10,6 +10,7 @@ const authSecret = process.env.NEXTAUTH_SECRET || 'default-dev-secret-change-in-
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: authSecret,
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
