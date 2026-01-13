@@ -1,30 +1,54 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function proxy(request: NextRequest) {
+async function checkSetupNeeded(origin: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${origin}/api/setup`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (response.ok) {
+      const data = await response.json() as { needsSetup: boolean };
+      return data.needsSetup;
+    }
+  } catch {
+    // If check fails, assume setup is not needed
+  }
+  return false;
+}
+
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Skip auth check for login page and API routes
-  const isLoginPage = pathname === '/login';
-  const isAuthApi = pathname.startsWith('/api/auth');
+  // Skip auth check for public pages and API routes
+  const isPublicRoute = pathname === '/login' || pathname === '/setup' || pathname.startsWith('/api/auth') || pathname === '/api/setup';
 
-  if (isLoginPage || isAuthApi) {
+  if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // For all other /admin routes, check authentication
-  if (pathname.startsWith('/admin')) {
-    // We can't use async auth() in middleware without exporting auth()
-    // So we'll let the layout handle auth, but add a header for optimization
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-pathname', pathname);
-    requestHeaders.set('x-needs-auth', 'true');
+  // Check if user is authenticated
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    });
+  // If authenticated, let them through
+  if (token) {
+    return NextResponse.next();
+  }
+
+  // Not authenticated - check if setup is needed (no admin users exist)
+  const needsSetup = await checkSetupNeeded(request.nextUrl.origin);
+  if (needsSetup) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/setup';
+    return NextResponse.redirect(url);
+  }
+
+  // For protected admin routes, redirect to login
+  if (pathname.startsWith('/admin')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
