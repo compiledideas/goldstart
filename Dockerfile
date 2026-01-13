@@ -53,8 +53,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/setup-db.sql ./setup-db.sql
 
 # Create directories with proper permissions
-RUN mkdir -p /app/uploads /app/data && \
-    chown -R nextjs:nodejs /app/uploads /app/data
+RUN mkdir -p /app/uploads /app/data /app/.next/cache && \
+    chown -R nextjs:nodejs /app/uploads /app/data /app/.next
 
 USER nextjs
 
