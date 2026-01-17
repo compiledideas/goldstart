@@ -18,18 +18,31 @@ async function checkSetupNeeded(origin: string): Promise<boolean> {
   return false;
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Skip auth check for public pages and API routes
-  const isPublicRoute = pathname === '/login' || pathname === '/setup' || pathname.startsWith('/api/auth') || pathname === '/api/setup';
+  const isPublicRoute = pathname === '/login' ||
+                        pathname === '/setup' ||
+                        pathname.startsWith('/api/auth') ||
+                        pathname === '/api/setup' ||
+                        pathname.startsWith('/_next') ||
+                        pathname.startsWith('/static') ||
+                        pathname.includes('favicon') ||
+                        pathname.includes('.');
 
   if (isPublicRoute) {
     return NextResponse.next();
   }
 
-  // Check if user is authenticated
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  // Check if user is authenticated using NextAuth v5
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET || 'default-dev-secret-change-in-production',
+    cookieName: process.env.NODE_ENV === 'production'
+      ? '__Secure-next-auth.session-token'
+      : 'next-auth.session-token',
+  });
 
   // If authenticated, let them through
   if (token) {
