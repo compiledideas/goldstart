@@ -32,8 +32,8 @@ export default function LoginPage() {
       toast.error('Invalid credentials');
     } else {
       toast.success('Login successful');
-      router.push('/admin');
-      router.refresh();
+      // Use hard redirect for production with NextAuth to ensure session is loaded
+      window.location.href = '/admin';
     }
   };
 
