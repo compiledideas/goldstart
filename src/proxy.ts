@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
 async function checkSetupNeeded(origin: string): Promise<boolean> {
   try {
@@ -18,7 +17,7 @@ async function checkSetupNeeded(origin: string): Promise<boolean> {
   return false;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Skip auth check for public pages and API routes
@@ -35,17 +34,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Check if user is authenticated using NextAuth v5
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET || 'default-dev-secret-change-in-production',
-    cookieName: process.env.NODE_ENV === 'production'
-      ? '__Secure-next-auth.session-token'
-      : 'next-auth.session-token',
-  });
+  // For Better Auth, we check for the session cookie
+  const sessionToken = request.cookies.get('better-auth.session_token')?.value;
 
-  // If authenticated, let them through
-  if (token) {
+  // If authenticated (has session cookie), let them through
+  if (sessionToken) {
     return NextResponse.next();
   }
 

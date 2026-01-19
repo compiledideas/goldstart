@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-server';
 import { getAllMarks, createMark, generateSlug } from '@/lib/queries/marks';
 
 export const runtime = 'nodejs';
@@ -15,9 +15,9 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
+    const session = await requireAdmin();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

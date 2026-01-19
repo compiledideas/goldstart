@@ -1,6 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { signIn } from '@/lib/auth-client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -22,27 +22,22 @@ export default function LoginPage() {
 
     console.log('LOGIN: Attempting login for:', email);
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      await signIn.email({
+        email,
+        password,
+        callbackURL: '/admin',
+      });
 
-    console.log('LOGIN: Sign in result:', result);
-
-    setIsLoading(false);
-
-    if (result?.error) {
-      console.error('LOGIN: Error:', result.error);
-      toast.error('Invalid credentials');
-    } else if (result?.ok) {
       console.log('LOGIN: Success, redirecting to /admin');
       toast.success('Login successful');
-      // Use hard redirect for production with NextAuth to ensure session is loaded
-      window.location.href = '/admin';
-    } else {
-      console.error('LOGIN: Unknown error, result:', result);
-      toast.error('Login failed. Please try again.');
+      router.push('/admin');
+      router.refresh();
+    } catch (error) {
+      console.error('LOGIN: Error:', error);
+      toast.error('Invalid credentials');
+    } finally {
+      setIsLoading(false);
     }
   };
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-server';
 import { getArticleById, updateArticle, deleteArticle, generateSlug } from '@/lib/queries/articles';
 import { getVariantsByArticle } from '@/lib/queries/variants';
 
@@ -35,9 +35,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await auth();
+    const session = await requireAdmin();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -71,9 +71,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await auth();
+    const session = await requireAdmin();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

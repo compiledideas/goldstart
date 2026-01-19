@@ -37,8 +37,9 @@ services:
       - UPLOAD_DIR=/app/uploads
       # MySQL connection string
       - DATABASE_URL=mysql://phonerepair:phonerepair_password@mysql:3306/phonerepair
-      - NEXTAUTH_SECRET=rLm88iwIMVdUBINcz9Ow0X08rbZlRj5+VFCV+V03TzE=
-      - NEXTAUTH_URL=https://goldstart.app
+      - BETTER_AUTH_SECRET=rLm88iwIMVdUBINcz9Ow0X08rbZlRj5+VFCV+V03TzE=
+      - BETTER_AUTH_URL=https://goldstart.app
+      - NEXT_PUBLIC_APP_URL=https://goldstart.app
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
       interval: 30s

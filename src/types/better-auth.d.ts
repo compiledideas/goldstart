@@ -1,12 +1,11 @@
-import 'next-auth';
+import type { User } from '@prisma/client';
 
-declare module 'next-auth' {
+declare module 'better-auth' {
   interface Session {
     user: {
       id: string;
       email: string;
       name: string;
-      role: string;
     };
   }
 
@@ -14,13 +13,9 @@ declare module 'next-auth' {
     id: string;
     email: string;
     name: string;
-    role: string;
-  }
-}
-
-declare module 'next-auth/jwt' {
-  interface JWT {
-    id: string;
-    role: string;
+    emailVerified: boolean;
+    role: 'ADMIN' | 'USER';
+    createdAt: Date;
+    updatedAt: Date;
   }
 }

@@ -1,5 +1,4 @@
-import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { requireAdminOrRedirect } from '@/lib/auth-server';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -11,11 +10,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   // Check authentication - redirects to /login if not authenticated
-  const session = await auth();
-
-  if (!session || session.user.role !== 'admin') {
-    redirect('/login');
-  }
+  const session = await requireAdminOrRedirect();
 
   // Render admin layout for authenticated users
   return (
@@ -78,7 +73,7 @@ export default async function AdminLayout({
                 <p className="font-medium truncate">{session.user.name}</p>
                 <p className="text-muted-foreground text-xs truncate">{session.user.email}</p>
               </div>
-              <form action="/api/auth/signout" method="POST">
+              <form action="/api/auth/sign-out" method="POST">
                 <Button variant="ghost" size="icon" type="submit" title="Sign out">
                   <LogOut className="h-4 w-4" />
                 </Button>
