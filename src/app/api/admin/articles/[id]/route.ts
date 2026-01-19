@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getArticleById, updateArticle, deleteArticle, generateSlug } from '@/db/queries/articles';
-import { getVariantsByArticle } from '@/db/queries/variants';
+import { getArticleById, updateArticle, deleteArticle, generateSlug } from '@/lib/queries/articles';
+import { getVariantsByArticle } from '@/lib/queries/variants';
 
 export const runtime = 'nodejs';
 

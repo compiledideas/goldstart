@@ -1,9 +1,7 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import db from '@/db';
-import { users } from '@/db/schema';
+import prisma from '@/lib/prisma';
 
 // Use environment variable or generate a default secret for development
 const authSecret = process.env.NEXTAUTH_SECRET || 'default-dev-secret-change-in-production';
@@ -25,18 +23,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const user = await db.select().from(users).where(eq(users.email, credentials.email as string)).limit(1);
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+        });
 
-        console.log('AUTH DEBUG: User query result:', user ? `Found ${user.length} users` : 'No users found');
+        console.log('AUTH DEBUG: User query result:', user ? `Found user` : 'No user found');
 
-        if (!user || user.length === 0) {
+        if (!user) {
           console.log('AUTH DEBUG: User not found');
           return null;
         }
 
-        console.log('AUTH DEBUG: User found:', { id: user[0].id, email: user[0].email, role: user[0].role });
+        console.log('AUTH DEBUG: User found:', { id: user.id, email: user.email, role: user.role });
 
-        const isValidPassword = await bcrypt.compare(credentials.password as string, user[0].password);
+        const isValidPassword = await bcrypt.compare(credentials.password as string, user.password);
 
         console.log('AUTH DEBUG: Password valid:', isValidPassword);
 
@@ -46,18 +46,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // Check if user is admin
-        if (user[0].role !== 'admin') {
-          console.log('AUTH DEBUG: User is not admin, role:', user[0].role);
+        if (user.role !== 'ADMIN') {
+          console.log('AUTH DEBUG: User is not admin, role:', user.role);
           return null;
         }
 
-        console.log('AUTH DEBUG: Authentication successful for:', user[0].email);
+        console.log('AUTH DEBUG: Authentication successful for:', user.email);
 
         return {
-          id: String(user[0].id),
-          email: user[0].email,
-          name: user[0].name,
-          role: user[0].role,
+          id: String(user.id),
+          email: user.email,
+          name: user.name,
+          role: user.role,
         };
       },
     }),

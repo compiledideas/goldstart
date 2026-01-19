@@ -1,19 +1,30 @@
-import db from '@/db';
-import { categories } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import prisma from '@/lib/prisma';
+
+export type CategoryWithIncludes = {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  image: string | null;
+  createdAt: Date;
+};
 
 export async function getAllCategories() {
-  return db.select().from(categories).orderBy(desc(categories.createdAt));
+  return prisma.category.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
 }
 
 export async function getCategoryById(id: number) {
-  const result = await db.select().from(categories).where(eq(categories.id, id)).limit(1);
-  return result[0];
+  return prisma.category.findUnique({
+    where: { id },
+  });
 }
 
 export async function getCategoryBySlug(slug: string) {
-  const result = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1);
-  return result[0];
+  return prisma.category.findUnique({
+    where: { slug },
+  });
 }
 
 export async function createCategory(data: {
@@ -22,8 +33,9 @@ export async function createCategory(data: {
   description?: string;
   image?: string;
 }) {
-  const result = await db.insert(categories).values(data).returning();
-  return result[0];
+  return prisma.category.create({
+    data,
+  });
 }
 
 export async function updateCategory(id: number, data: {
@@ -32,15 +44,16 @@ export async function updateCategory(id: number, data: {
   description?: string;
   image?: string;
 }) {
-  const result = await db.update(categories)
-    .set(data)
-    .where(eq(categories.id, id))
-    .returning();
-  return result[0];
+  return prisma.category.update({
+    where: { id },
+    data,
+  });
 }
 
 export async function deleteCategory(id: number) {
-  await db.delete(categories).where(eq(categories.id, id));
+  return prisma.category.delete({
+    where: { id },
+  });
 }
 
 export function generateSlug(name: string): string {

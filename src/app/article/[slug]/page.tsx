@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllArticles, getArticleWithVariants } from '@/db/queries/articles';
-import { getCategoryById } from '@/db/queries/categories';
-import { getMarkById } from '@/db/queries/marks';
+import { getArticleWithVariants } from '@/lib/queries/articles';
+import { getCategoryById } from '@/lib/queries/categories';
+import { getMarkById } from '@/lib/queries/marks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +10,8 @@ import { Separator } from '@/components/ui/separator';
 import { ChevronLeft, ImageOff, Package, Check, X, Euro } from 'lucide-react';
 import Image from 'next/image';
 
-export async function generateStaticParams() {
-  const articles = await getAllArticles();
-  return articles.map((article) => ({
-    slug: article.slug,
-  }));
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const data = await getArticleWithVariants(params.slug);

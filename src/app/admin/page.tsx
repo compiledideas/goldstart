@@ -2,9 +2,12 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FolderTree, Tag, Package, Plus, TrendingUp, Activity, Users } from 'lucide-react';
-import { getAllCategories } from '@/db/queries/categories';
-import { getAllMarks } from '@/db/queries/marks';
-import { getAllArticles } from '@/db/queries/articles';
+import { getAllCategories } from '@/lib/queries/categories';
+import { getAllMarks } from '@/lib/queries/marks';
+import { getAllArticles } from '@/lib/queries/articles';
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   const categories = await getAllCategories();

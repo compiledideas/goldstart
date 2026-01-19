@@ -1,19 +1,15 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllMarks, getMarkBySlug } from '@/db/queries/marks';
-import { getArticlesWithVariantsByMark } from '@/db/queries/articles';
-import { getCategoryById } from '@/db/queries/categories';
+import { getMarkBySlug } from '@/lib/queries/marks';
+import { getArticlesWithVariantsByMark } from '@/lib/queries/articles';
+import { getCategoryById } from '@/lib/queries/categories';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export async function generateStaticParams() {
-  const marks = await getAllMarks();
-  return marks.map((mark) => ({
-    slug: mark.slug,
-  }));
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default async function MarkPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

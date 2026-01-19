@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getAllArticles, createArticle, generateSlug } from '@/db/queries/articles';
+import { getAllArticles, createArticle, generateSlug } from '@/lib/queries/articles';
 
 export const runtime = 'nodejs';
 
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // If variants are provided, create them
     if (variants && Array.isArray(variants) && variants.length > 0) {
-      const { createVariant } = await import('@/db/queries/variants');
+      const { createVariant } = await import('@/lib/queries/variants');
       for (const variant of variants) {
         await createVariant({
           articleId: article.id,

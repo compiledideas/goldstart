@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getAllCategories, createCategory, generateSlug } from '@/db/queries/categories';
+import { getAllCategories, createCategory, generateSlug } from '@/lib/queries/categories';
 
 export const runtime = 'nodejs';
 

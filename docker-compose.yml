@@ -1,4 +1,23 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: phone-repair-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: phonerepair
+      MYSQL_USER: phonerepair
+      MYSQL_PASSWORD: phonerepair_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -7,15 +26,17 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
     volumes:
       # Mount uploads directory for persistent image storage
       - uploads:/app/uploads
-      # Mount database directory for persistent data storage
-      - db-data:/app/data
     environment:
       - NODE_ENV=production
       - UPLOAD_DIR=/app/uploads
-      - DATABASE_PATH=/app/data/phone-repair.db
+      # MySQL connection string
+      - DATABASE_URL=mysql://phonerepair:phonerepair_password@mysql:3306/phonerepair
       - NEXTAUTH_SECRET=rLm88iwIMVdUBINcz9Ow0X08rbZlRj5+VFCV+V03TzE=
       - NEXTAUTH_URL=https://goldstart.app
     healthcheck:
@@ -29,6 +50,6 @@ volumes:
   # Persistent volume for uploaded images
   uploads:
     driver: local
-  # Persistent volume for database
-  db-data:
+  # Persistent volume for MySQL database
+  mysql-data:
     driver: local

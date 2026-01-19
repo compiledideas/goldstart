@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument, rgb, StandardFonts, PDFImage } from 'pdf-lib'; // Added PDFImage type
-import { getAllArticlesWithVariantsGroupedByMark } from '@/db/queries/articles';
+import { getAllArticlesWithVariantsGroupedByMark } from '@/lib/queries/articles';
 import fs from 'fs';
 import path from 'path';
 

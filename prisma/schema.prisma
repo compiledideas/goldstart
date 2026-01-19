@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  description String?
+  image     String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  marks     Mark[]
+  articles  Article[]
+
+  @@map("categories")
+}
+
+model Mark {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  image       String?
+  categoryId  Int
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  category    Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  articles    Article[]
+
+  @@map("marks")
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  name        String
+  slug        String   @unique
+  description String?
+  categoryId  Int
+  markId      Int?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  category    Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  mark        Mark?             @relation(fields: [markId], references: [id], onDelete: SetNull)
+  variants    ArticleVariant[]
+
+  @@map("articles")
+}
+
+model ArticleVariant {
+  id        Int      @id @default(autoincrement())
+  articleId Int
+  name      String
+  price     Float
+  image     String?
+  stock     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("article_variants")
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime @map("expires_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}

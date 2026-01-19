@@ -1,13 +1,13 @@
 FROM node:20-alpine AS base
 
-# Install build dependencies for native modules
-RUN apk add --no-cache libc6-compat python3 make g++ sqlite
+# Install build dependencies
+RUN apk add --no-cache libc6-compat
 
 # Install dependencies
 FROM base AS deps
 WORKDIR /app
 
-# Copy package files ONLY - no workspace file
+# Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
@@ -20,18 +20,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Rebuild better-sqlite3 for Alpine (builder stage starts fresh)
-RUN cd node_modules/.pnpm/better-sqlite3@*/node_modules/better-sqlite3 && \
-    npm run build-release
-
-# Initialize database for build-time static generation
-# Set DATABASE_PATH so the app finds the database during build
-ENV DATABASE_PATH=/app/phone-repair.db
-RUN mkdir -p /app/data && \
-    sqlite3 /app/phone-repair.db < setup-db.sql
+# Generate Prisma Client
+RUN corepack enable pnpm && pnpm prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_PATH=/app/phone-repair.db
 
 RUN corepack enable pnpm && pnpm build
 
@@ -41,7 +33,6 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_PATH=/app/data/phone-repair.db
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -49,12 +40,12 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/setup-db.sql ./setup-db.sql
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/prisma ./prisma
 
 # Create directories with proper permissions
-RUN mkdir -p /app/uploads /app/data /app/.next/cache && \
-    chown -R nextjs:nodejs /app/uploads /app/data /app/.next
+RUN mkdir -p /app/uploads /app/.next/cache && \
+    chown -R nextjs:nodejs /app/uploads /app/.next
 
 USER nextjs
 

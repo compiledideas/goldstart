@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import db from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
@@ -11,17 +9,22 @@ export async function GET(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const allUsers = await db.select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      role: users.role,
-      createdAt: users.createdAt,
-    }).from(users).orderBy(users.createdAt);
+    const allUsers = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     return NextResponse.json(allUsers);
   } catch (error) {
@@ -33,20 +36,23 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
 
-    if (!session || session.user.role !== 'admin') {
+    if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { name, email, password, role = 'admin' } = body;
+    const { name, email, password, role = 'ADMIN' } = body;
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Check if user already exists
-    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
-    if (existingUser.length > 0) {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
     }
 
@@ -54,14 +60,23 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const result = await db.insert(users).values({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    }).returning();
+    const user = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: role === 'admin' ? 'ADMIN' : 'USER',
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
 
-    return NextResponse.json(result[0], { status: 201 });
+    return NextResponse.json(user, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }

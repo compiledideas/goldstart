@@ -1,18 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getAllCategories, getCategoryBySlug } from '@/db/queries/categories';
-import { getArticlesWithVariantsByCategory } from '@/db/queries/articles';
+import { getCategoryBySlug } from '@/lib/queries/categories';
+import { getArticlesWithVariantsByCategory } from '@/lib/queries/articles';
 import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
-export async function generateStaticParams() {
-  const categories = await getAllCategories();
-  return categories.map((category) => ({
-    slug: category.slug,
-  }));
-}
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

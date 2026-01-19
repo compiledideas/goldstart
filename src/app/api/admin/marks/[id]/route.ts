@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getMarkById, updateMark, deleteMark, generateSlug } from '@/db/queries/marks';
+import { getMarkById, updateMark, deleteMark, generateSlug } from '@/lib/queries/marks';
 
 export const runtime = 'nodejs';
 
