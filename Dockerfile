@@ -71,6 +71,15 @@ RUN corepack enable pnpm && \
 # Create startup script
 RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
     echo 'set -e' >> /app/docker-entrypoint.sh && \
+    echo '' >> /app/docker-entrypoint.sh && \
+    echo '# Wait for MySQL to be ready' >> /app/docker-entrypoint.sh && \
+    echo 'echo "Waiting for MySQL to be ready..."' >> /app/docker-entrypoint.sh && \
+    echo 'until npx prisma db push --skip-generate --accept-data-loss 2>&1 | grep -q "in sync\|Done"; do' >> /app/docker-entrypoint.sh && \
+    echo '  echo "MySQL is not ready yet - waiting..."' >> /app/docker-entrypoint.sh && \
+    echo '  sleep 3' >> /app/docker-entrypoint.sh && \
+    echo 'done' >> /app/docker-entrypoint.sh && \
+    echo '' >> /app/docker-entrypoint.sh && \
+    echo '# Final db push to ensure sync' >> /app/docker-entrypoint.sh && \
     echo 'echo "Running Prisma db push..."' >> /app/docker-entrypoint.sh && \
     echo 'npx prisma db push --skip-generate --accept-data-loss' >> /app/docker-entrypoint.sh && \
     echo 'echo "Starting Next.js server..."' >> /app/docker-entrypoint.sh && \
