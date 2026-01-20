@@ -13,19 +13,15 @@ COPY package.json pnpm-lock.yaml* ./
 # Install dependencies
 RUN corepack enable pnpm && pnpm install --frozen-lockfile=false
 
-# Copy Prisma schema for client generation
-COPY prisma ./prisma
-
-# Generate Prisma Client in deps stage
-# This ensures .prisma folder exists in node_modules before copying
-RUN corepack enable pnpm && pnpm prisma generate
-
 # Build the application
 FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Generate Prisma Client in builder stage with schema available
+RUN corepack enable pnpm && pnpm prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -44,7 +40,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+# Copy Prisma Client from pnpm's virtual store
+COPY --from=builder /app/node_modules/.pnpm/@prisma*/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
 
 # Create directories with proper permissions
