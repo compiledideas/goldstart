@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { requireAdmin } from '@/lib/auth-server';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
@@ -11,9 +11,9 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await auth();
+    const session = await requireAdmin();
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -22,7 +22,7 @@ export async function PUT(
 
     // Get current user to check if trying to change own role
     const currentUser = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id },
     });
 
     if (!currentUser) {
@@ -43,7 +43,7 @@ export async function PUT(
     }
 
     const user = await prisma.user.update({
-      where: { id: parseInt(id) },
+      where: { id },
       data: updateData,
       select: {
         id: true,
@@ -66,15 +66,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await auth();
+    const session = await requireAdmin();
 
-    if (!session || session.user.role !== 'ADMIN') {
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Prevent deleting yourself
     const userToDelete = await prisma.user.findUnique({
-      where: { id: parseInt(id) },
+      where: { id },
     });
 
     if (!userToDelete) {
@@ -86,7 +86,7 @@ export async function DELETE(
     }
 
     await prisma.user.delete({
-      where: { id: parseInt(id) },
+      where: { id },
     });
 
     return NextResponse.json({ success: true });
