@@ -4,10 +4,10 @@ services:
     container_name: phone-repair-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: GoldStrat12Password
       MYSQL_DATABASE: phonerepair
       MYSQL_USER: phonerepair
-      MYSQL_PASSWORD: phonerepair_password
+      MYSQL_PASSWORD: GoldStrat12Password_db
     ports:
       - "3306:3306"
     volumes:
@@ -22,6 +22,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=mysql://phonerepair:GoldStrat12Password_db@mysql:3306/phonerepair
+        - BETTER_AUTH_SECRET=HdD1SdgDw1CgQA782nsxn8BZN3Bf9DHmjUJ85zECulM=
+        - BETTER_AUTH_URL=https://goldstart.app
     container_name: phone-repair-app
     restart: unless-stopped
     ports:
@@ -36,12 +40,12 @@ services:
       - NODE_ENV=production
       - UPLOAD_DIR=/app/uploads
       # MySQL connection string
-      - DATABASE_URL=mysql://phonerepair:phonerepair_password@mysql:3306/phonerepair
-      - BETTER_AUTH_SECRET=rLm88iwIMVdUBINcz9Ow0X08rbZlRj5+VFCV+V03TzE=
+      - DATABASE_URL=mysql://phonerepair:GoldStrat12Password_db@mysql:3306/phonerepair
+      - BETTER_AUTH_SECRET=HdD1SdgDw1CgQA782nsxn8BZN3Bf9DHmjUJ85zECulM=
       - BETTER_AUTH_URL=https://goldstart.app
       - NEXT_PUBLIC_APP_URL=https://goldstart.app
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

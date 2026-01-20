@@ -20,6 +20,16 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set environment from .env for build
+# Dockploy will pass these at build time via build args
+ARG DATABASE_URL=mysql://user:password@localhost:3306/database
+ARG BETTER_AUTH_SECRET=HdD1SdgDw1CgQA782nsxn8BZN3Bf9DHmjUJ85zECulM=
+ARG BETTER_AUTH_URL=http://localhost:3000
+
+ENV DATABASE_URL=${DATABASE_URL}
+ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+
 # Generate Prisma Client in builder stage with schema available
 RUN corepack enable pnpm && pnpm prisma generate
 
@@ -33,6 +43,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Environment variables - defaults for build, overridden at runtime by Dockploy
+# Dockploy will inject runtime values via its environment variable configuration
+ENV DATABASE_URL=${DATABASE_URL}
+ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+ENV UPLOAD_DIR=/app/uploads
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
