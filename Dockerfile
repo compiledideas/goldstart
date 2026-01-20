@@ -57,13 +57,29 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# Copy Prisma Client from pnpm's virtual store
-COPY --from=builder /app/node_modules/.pnpm/@prisma*/node_modules/.prisma ./node_modules/.prisma
+
+# Copy package files and Prisma schema
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /app/prisma ./prisma
+
+# Install all dependencies including Prisma CLI for runtime migrations
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile=false && \
+    pnpm prisma generate
+
+# Create startup script
+RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
+    echo 'set -e' >> /app/docker-entrypoint.sh && \
+    echo 'echo "Running Prisma db push..."' >> /app/docker-entrypoint.sh && \
+    echo 'npx prisma db push --skip-generate --accept-data-loss' >> /app/docker-entrypoint.sh && \
+    echo 'echo "Starting Next.js server..."' >> /app/docker-entrypoint.sh && \
+    echo 'exec node server.js' >> /app/docker-entrypoint.sh && \
+    chmod +x /app/docker-entrypoint.sh
 
 # Create directories with proper permissions
 RUN mkdir -p /app/uploads /app/.next/cache && \
-    chown -R nextjs:nodejs /app/uploads /app/.next
+    chown -R nextjs:nodejs /app/uploads /app/.next /app/node_modules /app/prisma /app/docker-entrypoint.sh
 
 USER nextjs
 
@@ -72,4 +88,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["node", "server.js"]
+CMD ["/app/docker-entrypoint.sh"]
