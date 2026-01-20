@@ -13,6 +13,9 @@ COPY package.json pnpm-lock.yaml* ./
 # Install dependencies
 RUN corepack enable pnpm && pnpm install --frozen-lockfile=false
 
+# Copy Prisma schema for client generation
+COPY prisma ./prisma
+
 # Generate Prisma Client in deps stage
 # This ensures .prisma folder exists in node_modules before copying
 RUN corepack enable pnpm && pnpm prisma generate
