@@ -90,12 +90,6 @@ export default function EditArticlePage() {
               stock: (v as { stock: number }).stock.toString(),
               image: (v as { image?: string }).image || '',
             }))
-              id: v.id,
-              name: v.name,
-              price: v.price.toString(),
-              stock: v.stock.toString(),
-              image: v.image || '',
-            }))
           );
         }
       } else {
