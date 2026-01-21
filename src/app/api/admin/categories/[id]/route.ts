@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
 import { getCategoryById, updateCategory, deleteCategory, generateSlug } from '@/lib/queries/categories';
