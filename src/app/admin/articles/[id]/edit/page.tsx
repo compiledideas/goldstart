@@ -139,7 +139,7 @@ export default function EditArticlePage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateVariant = (index: number, field: keyof Variant, value: string) => {
     const newVariants = [...variants];
-    (newVariants[index] as unknown)[field] = value;
+    newVariants[index] = { ...newVariants[index], [field]: value };
     setVariants(newVariants);
   };
 
