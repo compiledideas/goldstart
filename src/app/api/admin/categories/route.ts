@@ -13,7 +13,7 @@ export async function GET() {
   }
 }
 
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await requireAdmin();
 
