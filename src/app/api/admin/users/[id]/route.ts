@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 export const runtime = 'nodejs';
 
 export async function PUT(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
