@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 export const runtime = 'nodejs';
 
 export async function PUT(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -34,6 +34,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
@@ -55,13 +56,13 @@ export async function PUT(
     });
 
     return NextResponse.json(user);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -90,7 +91,7 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
   }
 }

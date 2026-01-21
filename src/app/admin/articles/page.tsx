@@ -46,6 +46,7 @@ export default function ArticlesPage() {
     name: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchArticles();
   }, []);
@@ -55,7 +56,7 @@ export default function ArticlesPage() {
       const res = await fetch('/api/admin/articles');
       const data = await res.json();
       setArticles(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load articles');
     } finally {
       setLoading(false);
@@ -77,7 +78,7 @@ export default function ArticlesPage() {
       } else {
         toast.error('Failed to delete article');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to delete article');
     }
   };

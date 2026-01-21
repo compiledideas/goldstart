@@ -57,6 +57,7 @@ export default function UsersPage() {
     role: 'admin',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -66,7 +67,7 @@ export default function UsersPage() {
       const res = await fetch('/api/admin/users');
       const data = await res.json();
       setUsers(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
@@ -93,7 +94,7 @@ export default function UsersPage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to create user');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to create user');
     } finally {
       setSaving(false);
@@ -122,7 +123,7 @@ export default function UsersPage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to update user');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to update user');
     } finally {
       setSaving(false);
@@ -144,7 +145,7 @@ export default function UsersPage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to delete user');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to delete user');
     }
   };

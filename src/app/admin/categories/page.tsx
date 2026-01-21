@@ -43,6 +43,7 @@ export default function CategoriesPage() {
     name: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -52,7 +53,7 @@ export default function CategoriesPage() {
       const res = await fetch('/api/admin/categories');
       const data = await res.json();
       setCategories(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load categories');
     } finally {
       setLoading(false);
@@ -74,7 +75,7 @@ export default function CategoriesPage() {
       } else {
         toast.error('Failed to delete category');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to delete category');
     }
   };

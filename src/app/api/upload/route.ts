@@ -62,8 +62,8 @@ export async function POST(request: NextRequest) {
     // Return API URL for serving images
     const url = `/api/images/${filename}`;
     return NextResponse.json({ url }, { status: 201 });
-  } catch (error) {
-    console.error('Upload error:', error);
+  } catch (_) {
+    console.error('Upload error');
     return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }

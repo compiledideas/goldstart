@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const articles = await getAllArticles();
     return NextResponse.json(articles);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch articles' }, { status: 500 });
   }
 }
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(article, { status: 201 });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to create article' }, { status: 500 });
   }
 }

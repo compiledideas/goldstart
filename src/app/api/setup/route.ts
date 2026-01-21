@@ -13,8 +13,8 @@ export async function GET() {
     console.log('SETUP: Admin users found:', adminCount, ', needsSetup:', needsSetup);
 
     return NextResponse.json({ needsSetup });
-  } catch (error) {
-    console.error('SETUP: Error checking setup status:', error);
+  } catch (_) {
+    console.error('SETUP: Error checking setup status');
     // If tables don't exist, setup is needed
     return NextResponse.json({ needsSetup: true });
   }
@@ -63,8 +63,8 @@ export async function POST(req: NextRequest) {
 
     console.log('SETUP: Admin account created successfully for:', email);
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('SETUP: Error creating admin:', error);
+  } catch (_) {
+    console.error('SETUP: Error creating admin');
     return NextResponse.json({ error: 'Failed to create admin account' }, { status: 500 });
   }
 }

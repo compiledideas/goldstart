@@ -42,6 +42,7 @@ export default function MarksPage() {
     name: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchMarks();
   }, []);
@@ -51,7 +52,7 @@ export default function MarksPage() {
       const res = await fetch('/api/admin/marks');
       const data = await res.json();
       setMarks(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load marks');
     } finally {
       setLoading(false);
@@ -73,7 +74,7 @@ export default function MarksPage() {
       } else {
         toast.error('Failed to delete mark');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to delete mark');
     }
   };

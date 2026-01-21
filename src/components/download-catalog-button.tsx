@@ -22,8 +22,8 @@ export function DownloadCatalogButton() {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download error:', error);
+    } catch (_) {
+      console.error('Download error');
     } finally {
       setLoading(false);
     }

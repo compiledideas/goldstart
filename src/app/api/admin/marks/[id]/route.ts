@@ -5,7 +5,7 @@ import { getMarkById, updateMark, deleteMark, generateSlug } from '@/lib/queries
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -17,7 +17,7 @@ export async function GET(
     }
 
     return NextResponse.json(mark);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch mark' }, { status: 500 });
   }
 }
@@ -37,6 +37,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, image, categoryId } = body;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
     if (name !== undefined) {
       updateData.name = name;
@@ -53,13 +54,13 @@ export async function PUT(
     }
 
     return NextResponse.json(mark);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to update mark' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -72,7 +73,7 @@ export async function DELETE(
 
     await deleteMark(parseInt(id));
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to delete mark' }, { status: 500 });
   }
 }

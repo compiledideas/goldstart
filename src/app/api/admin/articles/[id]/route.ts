@@ -6,7 +6,7 @@ import { getVariantsByArticle } from '@/lib/queries/variants';
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -24,7 +24,7 @@ export async function GET(
       ...article,
       variants,
     });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch article' }, { status: 500 });
   }
 }
@@ -44,6 +44,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, categoryId, markId } = body;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
     if (name !== undefined) {
       updateData.name = name;
@@ -60,13 +61,13 @@ export async function PUT(
     }
 
     return NextResponse.json(article);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to update article' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -79,7 +80,7 @@ export async function DELETE(
 
     await deleteArticle(parseInt(id));
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to delete article' }, { status: 500 });
   }
 }

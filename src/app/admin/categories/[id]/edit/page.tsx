@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,8 +12,10 @@ import Link from 'next/link';
 import { toast } from 'sonner';
 import { ImageUpload } from '@/components/ui/image-upload';
 
-export default function EditCategoryPage({ params }: { params: { id: string } }) {
+export default function EditCategoryPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,13 +24,14 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     image: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCategory();
-  }, [params.id]);
+  }, [id]);
 
   const fetchCategory = async () => {
     try {
-      const res = await fetch(`/api/admin/categories/${params.id}`);
+      const res = await fetch(`/api/admin/categories/${id}`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -40,7 +43,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
         toast.error('Failed to load category');
         router.push('/admin/categories');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load category');
       router.push('/admin/categories');
     } finally {
@@ -53,7 +56,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/admin/categories/${params.id}`, {
+      const res = await fetch(`/api/admin/categories/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -66,7 +69,7 @@ export default function EditCategoryPage({ params }: { params: { id: string } })
         const error = await res.json();
         toast.error(error.error || 'Failed to update category');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to update category');
     } finally {
       setSaving(false);

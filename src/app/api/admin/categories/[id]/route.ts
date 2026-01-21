@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
 import { getCategoryById, updateCategory, deleteCategory, generateSlug } from '@/lib/queries/categories';
@@ -6,7 +5,7 @@ import { getCategoryById, updateCategory, deleteCategory, generateSlug } from '@
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -18,7 +17,7 @@ export async function GET(
     }
 
     return NextResponse.json(category);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch category' }, { status: 500 });
   }
 }
@@ -38,6 +37,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, image } = body;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
     if (name !== undefined) {
       updateData.name = name;
@@ -53,13 +53,13 @@ export async function PUT(
     }
 
     return NextResponse.json(category);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to update category' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -72,7 +72,7 @@ export async function DELETE(
 
     await deleteCategory(parseInt(id));
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to delete category' }, { status: 500 });
   }
 }

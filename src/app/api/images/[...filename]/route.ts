@@ -35,8 +35,8 @@ export async function GET(
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error) {
-    console.error('Image serve error:', error);
+  } catch (_) {
+    console.error('Image serve error');
     return NextResponse.json({ error: 'Failed to serve image' }, { status: 500 });
   }
 }

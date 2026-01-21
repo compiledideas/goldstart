@@ -8,12 +8,12 @@ export async function GET() {
   try {
     const marks = await getAllMarks();
     return NextResponse.json(marks);
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to fetch marks' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const session = await requireAdmin();
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(mark, { status: 201 });
-  } catch (error) {
+  } catch (_) {
     return NextResponse.json({ error: 'Failed to create mark' }, { status: 500 });
   }
 }

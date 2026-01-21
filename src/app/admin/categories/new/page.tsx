@@ -39,7 +39,7 @@ export default function NewCategoryPage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to create category');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to create category');
     } finally {
       setLoading(false);

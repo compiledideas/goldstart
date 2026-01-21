@@ -36,6 +36,7 @@ export default function NewMarkPage() {
     categoryId: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -45,7 +46,7 @@ export default function NewMarkPage() {
       const res = await fetch('/api/admin/categories');
       const data = await res.json();
       setCategories(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load categories');
     }
   };
@@ -71,7 +72,7 @@ export default function NewMarkPage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to create mark');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to create mark');
     } finally {
       setLoading(false);

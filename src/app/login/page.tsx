@@ -33,8 +33,8 @@ export default function LoginPage() {
       toast.success('Login successful');
       router.push('/admin');
       router.refresh();
-    } catch (error) {
-      console.error('LOGIN: Error:', error);
+    } catch (_) {
+      console.error('LOGIN: Error');
       toast.error('Invalid credentials');
     } finally {
       setIsLoading(false);

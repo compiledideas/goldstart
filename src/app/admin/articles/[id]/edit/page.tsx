@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Loader2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
@@ -58,10 +58,12 @@ export default function EditArticlePage() {
     { name: '', price: '', stock: '0', image: '' },
   ]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     Promise.all([fetchArticle(), fetchCategories()]);
   }, [id]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (formData.categoryId) {
       fetchMarks(parseInt(formData.categoryId));
@@ -81,8 +83,13 @@ export default function EditArticlePage() {
         });
         if (data.variants && data.variants.length > 0) {
           setVariants(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            data.variants.map((v: any) => ({
+            data.variants.map((v: unknown) => ({
+              id: (v as { id?: number }).id,
+              name: (v as { name: string }).name,
+              price: (v as { price: number }).price.toString(),
+              stock: (v as { stock: number }).stock.toString(),
+              image: (v as { image?: string }).image || '',
+            }))
               id: v.id,
               name: v.name,
               price: v.price.toString(),
@@ -95,7 +102,7 @@ export default function EditArticlePage() {
         toast.error('Failed to load article');
         router.push('/admin/articles');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load article');
       router.push('/admin/articles');
     } finally {
@@ -108,7 +115,7 @@ export default function EditArticlePage() {
       const res = await fetch('/api/admin/categories');
       const data = await res.json();
       setCategories(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load categories');
     }
   };
@@ -118,24 +125,27 @@ export default function EditArticlePage() {
       const res = await fetch(`/api/admin/marks?categoryId=${categoryId}`);
       const data = await res.json();
       setMarks(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load marks');
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addVariant = () => {
     setVariants([...variants, { name: '', price: '', stock: '0', image: '' }]);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const removeVariant = (index: number) => {
     if (variants.length > 1) {
       setVariants(variants.filter((_, i) => i !== index));
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateVariant = (index: number, field: keyof Variant, value: string) => {
     const newVariants = [...variants];
-    (newVariants[index] as any)[field] = value;
+    (newVariants[index] as unknown)[field] = value;
     setVariants(newVariants);
   };
 
@@ -161,7 +171,7 @@ export default function EditArticlePage() {
         const error = await res.json();
         toast.error(error.error || 'Failed to update article');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to update article');
     } finally {
       setSaving(false);

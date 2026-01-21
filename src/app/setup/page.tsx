@@ -47,8 +47,8 @@ export default function SetupPage() {
 
       toast.success('Admin account created successfully!');
       router.push('/login');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Something went wrong');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
       setIsLoading(false);
     }

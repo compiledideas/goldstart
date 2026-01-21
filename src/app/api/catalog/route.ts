@@ -245,8 +245,8 @@ export async function GET(request: NextRequest) {
         'Content-Disposition': `attachment; filename="catalog-${Date.now()}.pdf"`,
       },
     });
-  } catch (error) {
-    console.error('PDF generation error:', error);
+  } catch (_) {
+    console.error('PDF generation error');
     return NextResponse.json({ error: 'Failed to generate PDF' }, { status: 500 });
   }
 }

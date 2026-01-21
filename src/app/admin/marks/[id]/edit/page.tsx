@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,8 +25,10 @@ interface Category {
   slug: string;
 }
 
-export default function EditMarkPage({ params }: { params: { id: string } }) {
+export default function EditMarkPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -37,13 +39,14 @@ export default function EditMarkPage({ params }: { params: { id: string } }) {
     categoryId: '',
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     Promise.all([fetchMark(), fetchCategories()]);
-  }, [params.id]);
+  }, [id]);
 
   const fetchMark = async () => {
     try {
-      const res = await fetch(`/api/admin/marks/${params.id}`);
+      const res = await fetch(`/api/admin/marks/${id}`);
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -56,7 +59,7 @@ export default function EditMarkPage({ params }: { params: { id: string } }) {
         toast.error('Failed to load mark');
         router.push('/admin/marks');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load mark');
       router.push('/admin/marks');
     } finally {
@@ -69,7 +72,7 @@ export default function EditMarkPage({ params }: { params: { id: string } }) {
       const res = await fetch('/api/admin/categories');
       const data = await res.json();
       setCategories(data);
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to load categories');
     }
   };
@@ -79,7 +82,7 @@ export default function EditMarkPage({ params }: { params: { id: string } }) {
     setSaving(true);
 
     try {
-      const res = await fetch(`/api/admin/marks/${params.id}`, {
+      const res = await fetch(`/api/admin/marks/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -95,7 +98,7 @@ export default function EditMarkPage({ params }: { params: { id: string } }) {
         const error = await res.json();
         toast.error(error.error || 'Failed to update mark');
       }
-    } catch (error) {
+    } catch (_) {
       toast.error('Failed to update mark');
     } finally {
       setSaving(false);
