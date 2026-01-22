@@ -1,5 +1,9 @@
 'use client'
 
+import { Geist, Geist_Mono } from "next/font/google"
+
+const geistSans = Geist({ subsets: ["latin"] })
+
 export default function GlobalError({
   error,
   reset,
@@ -9,14 +13,15 @@ export default function GlobalError({
 }) {
   return (
     <html lang="en">
-      <body>
-        <div className="flex flex-col items-center justify-center min-h-screen p-5 text-center">
-          <h1 className="text-3xl font-bold mb-4">A critical error occurred</h1>
+      <body className={geistSans.className}>
+        <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
+          <h1 className="text-4xl font-bold mb-4">Critical System Error</h1>
+          <p className="mb-8 text-gray-600">A global error occurred that crashed the root layout.</p>
           <button
             onClick={() => reset()}
-            className="px-4 py-2 bg-primary text-white rounded-md"
+            className="px-6 py-3 bg-black text-white rounded-lg font-medium"
           >
-            Refresh App
+            Attempt Recovery
           </button>
         </div>
       </body>
