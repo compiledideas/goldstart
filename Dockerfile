@@ -35,6 +35,9 @@ RUN corepack enable pnpm && pnpm prisma generate
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Clean any cached Next.js artifacts to ensure fresh build
+RUN rm -rf .next
+
 RUN corepack enable pnpm && pnpm build
 
 # Production image
