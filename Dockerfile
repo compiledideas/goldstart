@@ -22,9 +22,9 @@ COPY . .
 
 # Set environment from .env for build
 # Dockploy will pass these at build time via build args
-ARG DATABASE_URL=mysql://user:password@localhost:3306/database
+ARG DATABASE_URL=mysql://mysql:zgTvQ6Ndx1VJTC3j1Wwk@217.182.205.50:3308/goldstart
 ARG BETTER_AUTH_SECRET=HdD1SdgDw1CgQA782nsxn8BZN3Bf9DHmjUJ85zECulM=
-ARG BETTER_AUTH_URL=http://localhost:3000
+ARG BETTER_AUTH_URL=https://goldstart.app
 
 ENV DATABASE_URL=${DATABASE_URL}
 ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
@@ -90,7 +90,7 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
+ENV PORT=3012
 ENV HOSTNAME=0.0.0.0
 
 CMD ["/app/docker-entrypoint.sh"]

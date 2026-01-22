@@ -1,12 +1,8 @@
 [phases.build]
-cmds = ["pnpm install --frozen-lockfile=false", "pnpm prisma generate", "pnpm build"]
+cmds = ["pnpm install --frozen-lockfile=false", "pnpm build"]
 
-[phases.start]
+[start]
 cmd = "pnpm start"
-
-[static]
-# Exclude .next directory from being cached to force clean builds
-exclude = ["**/.next/**", "**/node_modules/.cache/**"]
 
 [build.env]
 NODE_ENV = "production"
