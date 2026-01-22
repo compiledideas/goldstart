@@ -7,8 +7,8 @@ RUN apk add --no-cache libc6-compat
 FROM base AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml* ./
+# Copy package files and Prisma schema (needed for postinstall hook)
+COPY package.json pnpm-lock.yaml* prisma/ ./
 
 # Install dependencies
 RUN corepack enable pnpm && pnpm install --frozen-lockfile=false
