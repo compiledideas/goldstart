@@ -1,15 +1,16 @@
 import { auth } from '@/lib/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import type { Session } from '@/lib/auth';
 
-export async function getSession() {
+export async function getSession(): Promise<Session | null> {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
   return session;
 }
 
-export async function requireAuth() {
+export async function requireAuth(): Promise<Session | null> {
   const session = await getSession();
   if (!session?.user) {
     return null;
@@ -17,27 +18,21 @@ export async function requireAuth() {
   return session;
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<Session | null> {
   const session = await getSession();
   if (!session?.user) {
     return null;
   }
 
-  // Get the full user data from the database to check role
-  const { prisma } = await import('@/lib/prisma');
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { id: true, email: true, name: true, role: true },
-  });
-
-  if (!user || user.role !== 'ADMIN') {
+  // Role is now included in the session from Better Auth
+  if (session.user.role !== 'ADMIN') {
     return null;
   }
 
-  return { ...session, user };
+  return session;
 }
 
-export async function requireAdminOrRedirect() {
+export async function requireAdminOrRedirect(): Promise<Session> {
   const session = await requireAdmin();
   if (!session) {
     redirect('/login');

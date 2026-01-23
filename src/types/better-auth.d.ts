@@ -6,6 +6,7 @@ declare module 'better-auth' {
       id: string;
       email: string;
       name: string;
+      role: 'ADMIN' | 'USER';
     };
   }
 

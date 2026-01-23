@@ -1,12 +1,13 @@
 'use client';
 
+import { authClient } from '@/lib/auth-client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wrench, Loader2, ShieldCheck } from 'lucide-react';
+import { Wrench, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function SetupPage() {
@@ -16,6 +17,7 @@ export default function SetupPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,26 +35,60 @@ export default function SetupPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+      // Sign up using Better Auth
+      const res = await authClient.signUp.email({
+        email,
+        password,
+        name,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create admin account');
+      if (res.error) {
+        toast.error(res.error.message || 'Failed to create account');
+        console.error('Sign up error:', res.error);
+        return;
       }
 
+      console.log('SETUP: User created successfully');
+
+      // Sign in immediately after signup
+      await authClient.signIn.email({
+        email,
+        password,
+        callbackURL: '/admin',
+      });
+
+      setIsSuccess(true);
       toast.success('Admin account created successfully!');
-      router.push('/login');
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Something went wrong');
+
+      setTimeout(() => {
+        router.push('/admin');
+        router.refresh();
+      }, 1000);
+    } catch (error) {
+      console.error('SETUP: Error', error);
+      toast.error('Failed to create account');
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
+        <Card className="w-full max-w-md shadow-2xl border-2">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center gap-4">
+              <CheckCircle2 className="h-16 w-16 text-green-500" />
+              <div className="text-center space-y-2">
+                <h2 className="text-2xl font-bold">Setup Complete!</h2>
+                <p className="text-muted-foreground">Redirecting to admin panel...</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background p-4">
@@ -66,7 +102,7 @@ export default function SetupPage() {
         <CardHeader className="space-y-2 text-center pb-6">
           <div className="flex justify-center mb-2">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <ShieldCheck className="h-8 w-8 text-primary" />
+              <Wrench className="h-8 w-8 text-primary" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Initial Setup</CardTitle>

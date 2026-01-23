@@ -19,15 +19,37 @@ model User {
   id             String    @id @default(cuid())
   email          String    @unique
   emailVerified  Boolean   @default(false)
-  password       String
   name           String
+  image          String?
   role           Role      @default(USER)
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
 
   sessions Session[]
+  accounts Account[]
 
   @@map("users")
+}
+
+model Account {
+  id                        String    @id @default(cuid())
+  userId                    String
+  accountId                 String    @map("account_id")
+  providerId                String    @map("provider_id")
+  accessToken               String?   @map("access_token")
+  refreshToken              String?   @map("refresh_token")
+  idToken                   String?   @map("id_token")
+  accessTokenExpiresAt      DateTime? @map("access_token_expires_at")
+  refreshTokenExpiresAt     DateTime? @map("refresh_token_expires_at")
+  scope                     String?
+  password                  String?
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("accounts")
 }
 
 model Category {
