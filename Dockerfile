@@ -21,8 +21,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment from .env for build
-# Dockploy will pass these at build time via build args
+# Build-time arguments for Prisma generation
+# These are only used during build, runtime values come from Dokploy env vars
 ARG DATABASE_URL=mysql://mysql:zgTvQ6Ndx1VJTC3j1Wwk@217.182.205.50:3308/goldstart
 ARG BETTER_AUTH_SECRET=HdD1SdgDw1CgQA782nsxn8BZN3Bf9DHmjUJ85zECulM=
 ARG BETTER_AUTH_URL=https://goldstart.app
@@ -30,11 +30,11 @@ ARG BETTER_AUTH_URL=https://goldstart.app
 ENV DATABASE_URL=${DATABASE_URL}
 ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
 ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma Client in builder stage with schema available
 RUN corepack enable pnpm && pnpm prisma generate
-
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Clean any cached Next.js artifacts to ensure fresh build
 RUN rm -rf .next
@@ -48,11 +48,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Environment variables - defaults for build, overridden at runtime by Dockploy
-# Dockploy will inject runtime values via its environment variable configuration
-ENV DATABASE_URL=${DATABASE_URL}
-ENV BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
-ENV BETTER_AUTH_URL=${BETTER_AUTH_URL}
+# Environment variables for runtime - Dokploy will inject these
+# No defaults needed - Dokploy provides all runtime env vars
 ENV UPLOAD_DIR=/app/uploads
 
 RUN addgroup --system --gid 1001 nodejs && \

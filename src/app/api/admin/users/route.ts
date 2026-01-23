@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+import { auth } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 
@@ -56,15 +56,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        name,
+    // Use Better Auth API to sign up user (handles password hashing with scrypt)
+    const result = await auth.api.signUpEmail({
+      body: {
         email,
-        password: hashedPassword,
+        password,
+        name,
+      },
+    });
+
+    // Check if result has user property (success) or not
+    if (!result || !('user' in result) || !result.user) {
+      return NextResponse.json({ error: 'Failed to create user' }, { status: 400 });
+    }
+
+    // Update the user's role
+    const user = await prisma.user.update({
+      where: { id: result.user.id },
+      data: {
         role: role === 'admin' ? 'ADMIN' : 'USER',
       },
       select: {

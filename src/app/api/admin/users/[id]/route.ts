@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
 import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 
 export const runtime = 'nodejs';
 
@@ -34,14 +33,18 @@ export async function PUT(
       return NextResponse.json({ error: 'Cannot change your own role' }, { status: 400 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {};
+    // Update basic fields
+    const updateData: {
+      name?: string;
+      email?: string;
+      role?: 'ADMIN' | 'USER';
+    } = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (role !== undefined) updateData.role = role === 'admin' ? 'ADMIN' : 'USER';
-    if (password !== undefined && password !== '') {
-      updateData.password = await bcrypt.hash(password, 10);
-    }
+
+    // Password updates not supported from admin panel
+    // Users should reset their own password through Better Auth's flow
 
     const user = await prisma.user.update({
       where: { id },
