@@ -2,7 +2,8 @@ import { requireAdminOrRedirect } from '@/lib/auth-server';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { LayoutDashboard, FolderTree, Tag, Package, LogOut, Wrench, Home, Users } from 'lucide-react';
+import { LogoutButton } from '@/components/logout-button';
+import { LayoutDashboard, FolderTree, Tag, Package, Wrench, Home, Users } from 'lucide-react';
 
 export default async function AdminLayout({
   children,
@@ -73,11 +74,7 @@ export default async function AdminLayout({
                 <p className="font-medium truncate">{session.user.name}</p>
                 <p className="text-muted-foreground text-xs truncate">{session.user.email}</p>
               </div>
-              <form action="/api/auth/sign-out" method="POST">
-                <Button variant="ghost" size="icon" type="submit" title="Sign out">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </form>
+              <LogoutButton />
             </div>
           </div>
         </aside>
