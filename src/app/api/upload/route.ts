@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth-server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { uploadFileToMinio, ensureBucketExists } from '@/lib/minio';
 
 export const runtime = 'nodejs';
 
@@ -39,31 +37,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use upload directory from environment or fallback to local uploads folder
-    const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
-
-    // Create uploads directory if it doesn't exist
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    // Ensure bucket exists
+    await ensureBucketExists();
 
     // Generate unique filename
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
     const extension = file.name.split('.').pop();
     const filename = `${timestamp}-${randomString}.${extension}`;
-    const filepath = join(uploadDir, filename);
 
-    // Convert file to buffer and write to disk
+    // Convert file to buffer and upload to MinIO
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
+    const url = await uploadFileToMinio(buffer, filename, file.type);
 
-    // Return API URL for serving images
-    const url = `/api/images/${filename}`;
     return NextResponse.json({ url }, { status: 201 });
-  } catch (_) {
-    console.error('Upload error');
+  } catch (error) {
+    console.error('Upload error:', error);
     return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }

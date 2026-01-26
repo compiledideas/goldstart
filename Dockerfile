@@ -51,8 +51,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Environment variables for runtime - Dokploy will inject these
-# No defaults needed - Dokploy provides all runtime env vars
-ENV UPLOAD_DIR=/app/uploads
+# MinIO configuration must be provided via Dokploy environment variables
 
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -83,8 +82,8 @@ RUN echo '#!/bin/sh' > /app/docker-entrypoint.sh && \
     chmod +x /app/docker-entrypoint.sh
 
 # Create directories with proper permissions
-RUN mkdir -p /app/uploads /app/.next/cache && \
-    chown -R nextjs:nodejs /app/uploads /app/.next /app/node_modules /app/prisma /app/docker-entrypoint.sh
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app/.next /app/node_modules /app/prisma /app/docker-entrypoint.sh
 
 USER nextjs
 

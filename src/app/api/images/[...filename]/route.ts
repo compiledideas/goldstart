@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { getFileFromMinio } from '@/lib/minio';
 
 export const runtime = 'nodejs';
 
@@ -13,30 +11,22 @@ export async function GET(
     const { filename } = await params;
     const filenameStr = Array.isArray(filename) ? filename.join('/') : filename;
 
-    // Get upload directory from environment or fallback to local uploads folder
-    const uploadDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
-    const filepath = join(uploadDir, filenameStr);
-
-    // Check if file exists
-    if (!existsSync(filepath)) {
-      return NextResponse.json({ error: 'File not found' }, { status: 404 });
-    }
-
-    // Read file and determine content type
-    const file = await readFile(filepath);
-    const ext = filenameStr.split('.').pop()?.toLowerCase();
-    const contentType = getContentType(ext || '');
+    // Get file from MinIO
+    const { buffer, contentType } = await getFileFromMinio(filenameStr);
 
     // Return file with appropriate headers
-    return new NextResponse(file, {
+    return new NextResponse(buffer, {
       status: 200,
       headers: {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (_) {
-    console.error('Image serve error');
+  } catch (error: any) {
+    console.error('Image serve error:', error);
+    if (error.$metadata?.httpStatusCode === 404 || error?.name === 'NotFound') {
+      return NextResponse.json({ error: 'File not found' }, { status: 404 });
+    }
     return NextResponse.json({ error: 'Failed to serve image' }, { status: 500 });
   }
 }
