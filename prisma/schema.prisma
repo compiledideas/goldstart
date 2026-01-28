@@ -88,6 +88,7 @@ model Article {
   description String?
   categoryId  Int
   markId      Int?
+  order       Int      @default(0)
   createdAt   DateTime @default(now()) @map("created_at")
 
   category    Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)

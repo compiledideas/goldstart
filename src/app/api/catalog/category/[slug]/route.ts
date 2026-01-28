@@ -1,14 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFDocument, rgb, StandardFonts, PDFImage } from 'pdf-lib';
-import { getAllArticlesWithVariantsGroupedByMark } from '@/lib/queries/articles';
+import { getCategoryBySlug } from '@/lib/queries/categories';
+import { getArticlesWithVariantsByCategory } from '@/lib/queries/articles';
 import fs from 'fs';
 import path from 'path';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
-    const groupedArticles = await getAllArticlesWithVariantsGroupedByMark();
+    const { slug } = await params;
+    const category = await getCategoryBySlug(slug);
+
+    if (!category) {
+      return NextResponse.json({ error: 'Category not found' }, { status: 404 });
+    }
+
+    const articles = await getArticlesWithVariantsByCategory(category.id);
+
+    // Group articles by mark
+    const groupedByMark = articles.reduce((acc: Record<string, typeof articles>, article) => {
+      const markName = article.markName || 'Sans marque';
+      if (!acc[markName]) {
+        acc[markName] = [];
+      }
+      acc[markName].push(article);
+      return acc;
+    }, {});
+
+    // Convert to array format
+    const groupedArticles = Object.entries(groupedByMark).map(([markName, articles]) => ({
+      markName: markName === 'Sans marque' ? null : markName,
+      articles,
+    }));
 
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -67,12 +94,12 @@ export async function GET(request: NextRequest) {
 
     // Draw title
     currentY = pageHeight - headerHeight - titleHeight;
-    currentPage.drawText('Catalogue Complet', {
+    currentPage.drawText(category.name, {
       x: margin,
       y: currentY,
       size: 18,
       font: fontBold,
-      color: rgb(252 / 255, 57 / 255, 0),
+      color: rgb(0, 0, 0),
     });
 
     // Draw column headers
@@ -391,7 +418,7 @@ export async function GET(request: NextRequest) {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="catalog-${Date.now()}.pdf"`,
+        'Content-Disposition': `attachment; filename="${category.slug}-catalog-${Date.now()}.pdf"`,
       },
     });
   } catch (error) {

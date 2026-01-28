@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DownloadCategoryCatalogButton } from '@/components/download-category-catalog-button';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -41,7 +42,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           ← Retour aux produits
         </Link>
 
-        <h1 className="text-3xl font-bold tracking-tight mb-8">{category.name}</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">{category.name}</h1>
+          <DownloadCategoryCatalogButton
+            categorySlug={category.slug}
+            categoryName={category.name}
+          />
+        </div>
 
         {articles.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">

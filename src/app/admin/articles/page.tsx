@@ -20,9 +20,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { DraggableArticleRow } from '@/components/admin/draggable-article-row';
 
 interface Article {
   id: number;
@@ -40,13 +55,20 @@ interface Article {
 export default function ArticlesPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: number | null; name: string }>({
     open: false,
     id: null,
     name: '',
   });
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     fetchArticles();
   }, []);
@@ -60,6 +82,47 @@ export default function ArticlesPage() {
       toast.error('Failed to load articles');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = articles.findIndex((article) => article.id === active.id);
+    const newIndex = articles.findIndex((article) => article.id === over.id);
+
+    const newArticles = arrayMove(articles, oldIndex, newIndex);
+    setArticles(newArticles);
+
+    // Save to server
+    setSavingOrder(true);
+    try {
+      const res = await fetch('/api/admin/articles/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          articleIds: newArticles.map((a) => a.id),
+        }),
+      });
+
+      if (res.ok) {
+        toast.success('Articles reordered successfully');
+      } else {
+        const error = await res.json();
+        toast.error(error.error || 'Failed to reorder articles');
+        // Revert on error
+        setArticles(articles);
+      }
+    } catch (_) {
+      toast.error('Failed to reorder articles');
+      // Revert on error
+      setArticles(articles);
+    } finally {
+      setSavingOrder(false);
     }
   };
 
@@ -102,6 +165,12 @@ export default function ArticlesPage() {
         </Link>
       </div>
 
+      {savingOrder && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          Saving order...
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>All Articles</CardTitle>
@@ -115,69 +184,38 @@ export default function ArticlesPage() {
               <p className="text-muted-foreground">No articles yet. Create your first article.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Mark</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {articles.map((article) => (
-                  <TableRow key={article.id}>
-                    <TableCell className="font-medium">{article.name}</TableCell>
-                    <TableCell>
-                      {article.categoryName ? (
-                        <Link
-                          href={`/category/${article.categorySlug}`}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <Badge variant="outline">{article.categoryName}</Badge>
-                        </Link>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {article.markName ? (
-                        <Link
-                          href={`/mark/${article.markSlug}`}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
-                          <Badge variant="secondary">{article.markName}</Badge>
-                        </Link>
-                      ) : (
-                        '-'
-                      )}
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
-                      {article.description || '-'}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Link href={`/admin/articles/${article.id}/edit`}>
-                          <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            setDeleteDialog({ open: true, id: article.id, name: article.name })
-                          }
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Mark</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  <SortableContext
+                    items={articles.map((a) => a.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {articles.map((article) => (
+                      <DraggableArticleRow
+                        key={article.id}
+                        article={article}
+                        onDelete={(id, name) => setDeleteDialog({ open: true, id, name })}
+                      />
+                    ))}
+                  </SortableContext>
+                </TableBody>
+              </Table>
+            </DndContext>
           )}
         </CardContent>
       </Card>

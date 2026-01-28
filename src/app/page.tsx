@@ -6,7 +6,6 @@ import { Settings, ShoppingCart, MessageCircle, Package } from 'lucide-react';
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ImageOff } from 'lucide-react';
 import { DownloadCatalogButton } from '@/components/download-catalog-button';
 
 // Force dynamic rendering

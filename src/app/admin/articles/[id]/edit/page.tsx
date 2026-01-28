@@ -14,9 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 interface Category {
   id: number;
@@ -58,12 +59,10 @@ export default function EditArticlePage() {
     { name: '', price: '', stock: '0', image: '' },
   ]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     Promise.all([fetchArticle(), fetchCategories()]);
   }, [id]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (formData.categoryId) {
       fetchMarks(parseInt(formData.categoryId));
@@ -124,19 +123,16 @@ export default function EditArticlePage() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const addVariant = () => {
     setVariants([...variants, { name: '', price: '', stock: '0', image: '' }]);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const removeVariant = (index: number) => {
     if (variants.length > 1) {
       setVariants(variants.filter((_, i) => i !== index));
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const updateVariant = (index: number, field: keyof Variant, value: string) => {
     const newVariants = [...variants];
     newVariants[index] = { ...newVariants[index], [field]: value };
@@ -159,6 +155,21 @@ export default function EditArticlePage() {
       });
 
       if (res.ok) {
+        // Save variants
+        await fetch(`/api/admin/articles/${id}/variants`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            variants: variants.map(v => ({
+              id: v.id || undefined,
+              name: v.name,
+              price: parseFloat(v.price) || 0,
+              stock: parseInt(v.stock) || 0,
+              image: v.image || null,
+            })),
+          }),
+        });
+
         toast.success('Article updated successfully');
         router.push('/admin/articles');
       } else {
@@ -279,27 +290,76 @@ export default function EditArticlePage() {
       <Card>
         <CardHeader>
           <CardTitle>Variants</CardTitle>
-          <CardDescription>
-            Manage variants for this article (Note: Variant editing not yet implemented)
-          </CardDescription>
+          <CardDescription>Manage variants for this article</CardDescription>
         </CardHeader>
         <CardContent>
-          {variants.length > 0 && variants[0].name ? (
-            <div className="space-y-2">
-              {variants.map((variant) => (
-                <div key={variant.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <span className="font-medium">{variant.name}</span>
-                    <span className="text-muted-foreground ml-2">
-                      DH{variant.price} - Stock: {variant.stock}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Variants *</Label>
+              <Button type="button" variant="outline" size="sm" onClick={addVariant}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Variant
+              </Button>
             </div>
-          ) : (
-            <p className="text-muted-foreground">No variants found.</p>
-          )}
+
+            {variants.map((variant, index) => (
+              <Card key={variant.id || index}>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium">Variant {index + 1}</span>
+                    {variants.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeVariant(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor={`variant-name-${index}`}>Name *</Label>
+                      <Input
+                        id={`variant-name-${index}`}
+                        value={variant.name}
+                        onChange={(e) => updateVariant(index, 'name', e.target.value)}
+                        placeholder="e.g., Black, 128GB"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`variant-price-${index}`}>Price (DH) *</Label>
+                      <Input
+                        id={`variant-price-${index}`}
+                        type="number"
+                        step="0.01"
+                        value={variant.price}
+                        onChange={(e) => updateVariant(index, 'price', e.target.value)}
+                        placeholder="29.99"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`variant-stock-${index}`}>Stock</Label>
+                      <Input
+                        id={`variant-stock-${index}`}
+                        type="number"
+                        value={variant.stock}
+                        onChange={(e) => updateVariant(index, 'stock', e.target.value)}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <ImageUpload
+                        value={variant.image}
+                        onChange={(url) => updateVariant(index, 'image', url)}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

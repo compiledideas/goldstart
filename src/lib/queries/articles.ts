@@ -16,7 +16,7 @@ export async function getAllArticles() {
         },
       },
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { order: 'asc' },
   });
 
   // Transform to match expected format with flat properties
@@ -43,10 +43,7 @@ export async function getArticlesWithVariantsByCategory(categoryId: number) {
         orderBy: { name: 'asc' },
       },
     },
-    orderBy: [
-      { mark: { name: 'asc' } },
-      { name: 'asc' },
-    ],
+    orderBy: { order: 'asc' },
   });
 
   // Transform to match expected format with flat properties
@@ -71,7 +68,7 @@ export async function getArticlesWithVariantsByMark(markId: number) {
         orderBy: { name: 'asc' },
       },
     },
-    orderBy: { name: 'asc' },
+    orderBy: { order: 'asc' },
   });
 
   // Transform to match expected format with flat properties
@@ -100,10 +97,7 @@ export async function getAllArticlesWithVariantsGroupedByMark() {
         orderBy: { name: 'asc' },
       },
     },
-    orderBy: [
-      { mark: { name: 'asc' } },
-      { name: 'asc' },
-    ],
+    orderBy: { order: 'asc' },
   });
 
   // Group by mark
@@ -270,4 +264,15 @@ export async function getRecentArticlesWithVariants(days: number = 15) {
     markName: article.mark?.name || null,
     markSlug: article.mark?.slug || null,
   }));
+}
+
+export async function reorderArticles(articleIds: number[]) {
+  return prisma.$transaction(
+    articleIds.map((id, index) =>
+      prisma.article.update({
+        where: { id },
+        data: { order: index },
+      })
+    )
+  );
 }
