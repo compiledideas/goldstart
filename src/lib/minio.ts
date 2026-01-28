@@ -15,7 +15,6 @@ const s3Client = new S3Client({
     secretAccessKey: minioSecretKey,
   },
   forcePathStyle: true,
-  useSSL: minioUseSSL,
 });
 
 export async function uploadFileToMinio(

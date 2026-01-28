@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ChevronLeft, ImageOff, Package, Check, X, Euro } from 'lucide-react';
+import { ChevronLeft, ImageOff, Package, Check, X } from 'lucide-react';
 import Image from 'next/image';
 
 // Force dynamic rendering
@@ -147,8 +147,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
                 <CardHeader>
                   <CardTitle className="line-clamp-1">{variant.name}</CardTitle>
                   <CardDescription className="flex items-center gap-1 text-base font-semibold text-foreground">
-                    <Euro className="h-4 w-4" />
-                    {(variant.price / 100).toFixed(2)}
+                    {variant.price > 0 ? `${variant.price} DH` : 'Prix sur demande'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

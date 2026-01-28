@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         await createVariant({
           articleId: article.id,
           name: variant.name,
-          price: variant.price * 100, // Convert to cents
+          price: variant.price,
           image: variant.image || null,
           stock: variant.stock || 0,
         });
